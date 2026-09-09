@@ -1,1 +1,26 @@
 /* You can add global styles to this file, and also import other style files */
+:root {
+  --color-green: #007A3F;
+  --color-offwhite: #F6F8FF;
+  --color-dark: #1C1018;
+  --color-orange: #FF7F11;
+  --color-sand: #ECD7BD;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-sand);
+  color: var(--color-dark);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
