@@ -13,23 +13,30 @@
       <div class="upload-grid">
         <div class="upload-box">
             <h3>Person</h3>
-            @if (userImagePreview()) {
+            @if (processingUser()) {
+              <div class="box-spinner"></div>
+              <p class="box-spinner-text">Preparing photo…</p>
+            } @else if (userImagePreview()) {
               <img [src]="userImagePreview()" alt="person preview" />
             }
             <label class="file-btn">
                 <span>{{ userImage ? 'Change photo' : 'Choose photo' }}</span>
-                <input type="file" accept="image/*" (change)="onUserImageSelected($event)" />
+                <input type="file" accept="image/*, ,.heic,.heif,image/heic,image/heif" (change)="onUserImageSelected($event)" />
               </label>
           </div>
           
           <div class="upload-box">
             <h3>Clothing</h3>
-            @if (clothingImagePreview()) {
+            @if (processingClothing()) {
+              <div class="box-spinner"></div>
+              <p class="box-spinner-text">Preparing photo…</p>
+            } @else if (clothingImagePreview()) {
               <img [src]="clothingImagePreview()" alt="clothing preview" />
             }
+      
             <label class="file-btn">
                 <span>{{ clothingImage ? 'Change photo' : 'Choose photo' }}</span>
-                <input type="file" accept="image/*" (change)="onClothingImageSelected($event)" />
+                <input type="file" accept="image/*,.heic,.heif,image/heic,image/heif" (change)="onClothingImageSelected($event)" />
               </label>
           </div>
       </div>
@@ -48,9 +55,9 @@
           <div class="spinner">Generating your try-on…</div>
         }
   
-        @if (job()!.status === 'completed' && job()!.image_url) {
+       <!--  @if (job()!.status === 'completed' && job()!.image_url) {
           <img class="result-image" [src]="job()!.image_url" alt="try-on result" />
-        }
+        } -->
 
         @if (job()!.status === 'completed' && job()!.image_url) {
             <img class="result-image" [src]="job()!.image_url" alt="try-on result" />

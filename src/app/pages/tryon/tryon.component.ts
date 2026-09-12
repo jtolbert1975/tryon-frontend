@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { Subscription, interval, switchMap, takeWhile } from 'rxjs';
 import { TryOnService, TryOnJob } from '../../services/tryon.service';
 import { AuthService } from '../../services/auth.service';
+import { ImageProcessorService } from '../../services/image-processor.service';
+
 
 @Component({
   selector: 'app-tryon',
@@ -15,6 +17,7 @@ export class TryOnComponent {
   private tryOnService = inject(TryOnService);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private imageProcessor = inject(ImageProcessorService);
 
   userImage: File | null = null;
   clothingImage: File | null = null;
@@ -24,19 +27,41 @@ export class TryOnComponent {
   job = signal<TryOnJob | null>(null);
   error = signal<string | null>(null);
   submitting = signal<boolean>(false);
+  processingUser = signal<boolean>(false);
+  processingClothing = signal<boolean>(false);
 
   private pollSub?: Subscription;
 
-  onUserImageSelected(event: Event): void {
+  async onUserImageSelected(event: Event): Promise<void> {
     const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    this.userImage = file;
-    this.userImagePreview.set(file ? URL.createObjectURL(file) : null);
+    if (!file) return;
+    this.error.set(null);
+    this.processingUser.set(true);
+    try {
+      const processed = await this.imageProcessor.process(file);
+      this.userImage = processed;
+      this.userImagePreview.set(URL.createObjectURL(processed));
+    } catch {
+      this.error.set('Could not process that image. Try a different photo.');
+    } finally {
+      this.processingUser.set(false);
+    }
   }
-
-  onClothingImageSelected(event: Event): void {
+  
+  async onClothingImageSelected(event: Event): Promise<void> {
     const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    this.clothingImage = file;
-    this.clothingImagePreview.set(file ? URL.createObjectURL(file) : null);
+    if (!file) return;
+    this.error.set(null);
+    this.processingClothing.set(true);
+    try {
+      const processed = await this.imageProcessor.process(file);
+      this.clothingImage = processed;
+      this.clothingImagePreview.set(URL.createObjectURL(processed));
+    } catch {
+      this.error.set('Could not process that image. Try a different photo.');
+    } finally {
+      this.processingClothing.set(false);
+    }
   }
 
   submit(): void {
