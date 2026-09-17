@@ -2,6 +2,9 @@
     <header class="tryon-header">
       <h1>Virtual Try-On</h1>
       <button class="logout-btn" (click)="logout()">Log out</button>
+      @if (generationsRemaining() !== null) {
+        <p class="quota-info">{{ generationsRemaining() }} generations left this month</p>
+      }
     </header>
   
     @if (error()) {
@@ -69,6 +72,31 @@
         }
   
         <button class="reset-btn" (click)="reset()">Try Another</button>
+      </div>
+    }
+    @if (quotaExceeded()) {
+      <div class="upgrade-overlay">
+        <div class="upgrade-card">
+          <h2>You've hit your monthly limit</h2>
+          <p class="upgrade-subtitle">
+            You've used all your free generations this month. Upgrade for more.
+          </p>
+    
+          <div class="tier-grid">
+            @for (tier of tiers; track tier.id) {
+              <div class="tier-card">
+                <h3>{{ tier.name }}</h3>
+                <p class="tier-price">{{ tier.price }}<span>/month</span></p>
+                <p class="tier-generations">{{ tier.generations }} generations / month</p>
+                <button class="tier-btn" (click)="selectUpgrade(tier.id)">
+                  Choose {{ tier.name }}
+                </button>
+              </div>
+            }
+          </div>
+    
+          <button class="dismiss-btn" (click)="dismissUpgrade()">Maybe later</button>
+        </div>
       </div>
     }
   </div>

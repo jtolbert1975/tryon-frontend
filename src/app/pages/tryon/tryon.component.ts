@@ -29,8 +29,17 @@ export class TryOnComponent {
   submitting = signal<boolean>(false);
   processingUser = signal<boolean>(false);
   processingClothing = signal<boolean>(false);
+  generationsRemaining = signal<number | null>(null);
+  quotaExceeded = signal<boolean>(false);
 
   private pollSub?: Subscription;
+
+  // tier options for the upgrade prompt (mirrors config/tiers.php)
+tiers = [
+  { name: 'Basic', price: '$1.99', generations: 10, id: 'basic' },
+  { name: 'Pro',   price: '$2.99', generations: 20, id: 'pro' },
+];
+  
 
   async onUserImageSelected(event: Event): Promise<void> {
     const file = (event.target as HTMLInputElement).files?.[0] ?? null;
@@ -77,11 +86,20 @@ export class TryOnComponent {
       next: (job) => {
         this.job.set(job);
         this.submitting.set(false);
+        if (typeof job.generations_remaining === 'number') {
+          this.generationsRemaining.set(job.generations_remaining);
+        }
         this.startPolling(job.id);
       },
       error: (err) => {
         this.submitting.set(false);
-        this.error.set(err?.error?.message ?? 'Failed to start try-on.');
+        if (err?.status === 429) {
+          this.error.set(err.error?.message ?? "You've reached your monthly generation limit.");
+          // optionally set a flag to show an upgrade prompt later
+          this.quotaExceeded.set(true);
+        } else {
+          this.error.set(err?.error?.message ?? 'Failed to start try-on.');
+        }
       },
     });
   }
@@ -152,5 +170,17 @@ export class TryOnComponent {
     } catch {
       this.error.set('Could not download the image.');
     }
+  }
+
+  selectUpgrade(tierId: string): void {
+    // Placeholder until Stripe is wired up
+    this.error.set(null);
+    console.log('Upgrade selected:', tierId);
+    // Later: kick off Stripe checkout for this tier
+    alert(`Upgrade to ${tierId} — payment coming soon!`);
+  }
+
+  dismissUpgrade(): void {
+    this.quotaExceeded.set(false);
   }
 }

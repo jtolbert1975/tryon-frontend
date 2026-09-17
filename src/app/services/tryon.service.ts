@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface TryOnJob {
+  generations_remaining: any;
   id: number;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   created_at: string;
