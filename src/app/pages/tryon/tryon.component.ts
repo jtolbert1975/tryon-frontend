@@ -125,14 +125,14 @@ export class TryOnComponent {
     });
   }
 
-  download(): void {
+  /* download(): void {
     const url = this.job()?.image_url;
     if (url) {
       window.open(url, '_blank');
     }
-  }
+  } */
 
-  /* async download(): Promise<void> {
+  async download(): Promise<void> {
     const url = this.job()?.image_url;
     if (!url) return;
   
@@ -143,7 +143,7 @@ export class TryOnComponent {
   
       const a = document.createElement('a');
       a.href = blobUrl;
-      a.download = `tryon-result-${this.job()!.id}.webp`;
+      a.download = `adattamento-result-${this.job()!.id}.png`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -152,5 +152,5 @@ export class TryOnComponent {
     } catch {
       this.error.set('Could not download the image.');
     }
-  } */
+  }
 }

@@ -61,7 +61,7 @@
 
         @if (job()!.status === 'completed' && job()!.image_url) {
             <img class="result-image" [src]="job()!.image_url" alt="try-on result" />
-            <button class="download-btn" (click)="download()">Open Full Image</button>
+            <button class="download-btn" (click)="download()">Download Image</button>
           }
   
         @if (job()!.status === 'failed') {
