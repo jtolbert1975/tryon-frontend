@@ -1,0 +1,24 @@
+<div class="help-overlay" (click)="close.emit()">
+    <div class="help-card" (click)="$event.stopPropagation()">
+      <h2>How Adattamento works</h2>
+  
+      <div class="help-section">
+        <h3>1. Upload a photo of yourself</h3>
+        <p>Front-facing, showing your upper or full body, with a plain background works best. Relax your arms at your sides.</p>
+      </div>
+  
+      <div class="help-section">
+        <h3>2. Add a clothing item</h3>
+        <p>Use a product photo from any shopping site — even one where the item is worn by a model. Clear, well-lit images give the best results.</p>
+      </div>
+  
+      <div class="help-section">
+        <h3>3. Run the try-on</h3>
+        <p>We'll generate an image of you wearing the item. Use "Try Another" to keep your photo and try a different outfit.</p>
+      </div>
+  
+      <p class="help-note">Each try-on uses one generation from your monthly limit.</p>
+  
+      <button class="help-close" (click)="close.emit()">Got it</button>
+    </div>
+  </div>

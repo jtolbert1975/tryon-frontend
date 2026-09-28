@@ -6,12 +6,13 @@ import { AuthService } from '../../services/auth.service';
 import { ImageProcessorService } from '../../services/image-processor.service';
 import { SubscriptionService } from '../../services/subscription.service';
 import { ActivatedRoute } from '@angular/router';
+import { HelpModalComponent } from '../../components/help-modal/help-modal.component';
 
 
 @Component({
   selector: 'app-tryon',
   standalone: true,
-  imports: [],
+  imports: [HelpModalComponent],
   templateUrl: './tryon.component.html',
   styleUrl: './tryon.component.scss',
 })
@@ -38,6 +39,7 @@ export class TryOnComponent implements OnInit {
   checkoutLoading = signal<boolean>(false);
   checkoutStatus = signal<'success' | 'processing' | null>(null);
   confirmedTier = signal<string | null>(null);
+  showHelp = signal<boolean>(false);
 
   private pollSub?: Subscription;
  
@@ -236,6 +238,10 @@ ngOnInit(): void {
 
   dismissCheckoutBanner(): void {
     this.checkoutStatus.set(null);
+  }
+
+  toggleHelp(): void {
+    this.showHelp.update(v => !v);
   }
   
 }
