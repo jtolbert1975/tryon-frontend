@@ -143,11 +143,12 @@ ngOnInit(): void {
   reset(): void {
     this.pollSub?.unsubscribe();
     this.job.set(null);
-    this.userImage = null;
-    this.clothingImage = null;
-    this.userImagePreview.set(null);
-    this.clothingImagePreview.set(null);
     this.error.set(null);
+  
+    // Keep the person image — only clear the garment and result
+    this.clothingImage = null;
+    this.clothingImagePreview.set(null);
+    // userImage and userImagePreview intentionally preserved
   }
 
   logout(): void {
