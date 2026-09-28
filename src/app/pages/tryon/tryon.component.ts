@@ -1,9 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription, interval, switchMap, takeWhile } from 'rxjs';
 import { TryOnService, TryOnJob } from '../../services/tryon.service';
 import { AuthService } from '../../services/auth.service';
 import { ImageProcessorService } from '../../services/image-processor.service';
+import { SubscriptionService } from '../../services/subscription.service';
+import { ActivatedRoute } from '@angular/router';
 
 
 @Component({
@@ -13,11 +15,13 @@ import { ImageProcessorService } from '../../services/image-processor.service';
   templateUrl: './tryon.component.html',
   styleUrl: './tryon.component.scss',
 })
-export class TryOnComponent {
+export class TryOnComponent implements OnInit {
   private tryOnService = inject(TryOnService);
   private auth = inject(AuthService);
   private router = inject(Router);
   private imageProcessor = inject(ImageProcessorService);
+  private subscriptionService = inject(SubscriptionService);
+  private route = inject(ActivatedRoute);
 
   userImage: File | null = null;
   clothingImage: File | null = null;
@@ -31,8 +35,12 @@ export class TryOnComponent {
   processingClothing = signal<boolean>(false);
   generationsRemaining = signal<number | null>(null);
   quotaExceeded = signal<boolean>(false);
+  checkoutLoading = signal<boolean>(false);
+  checkoutStatus = signal<'success' | 'processing' | null>(null);
+  confirmedTier = signal<string | null>(null);
 
   private pollSub?: Subscription;
+ 
 
   // tier options for the upgrade prompt (mirrors config/tiers.php)
 tiers = [
@@ -40,6 +48,16 @@ tiers = [
   { name: 'Pro',   price: '$2.99', generations: 20, id: 'pro' },
 ];
   
+  
+ngOnInit(): void {
+  this.route.queryParams.subscribe(params => {
+    if (params['checkout'] === 'success') {
+      this.confirmUpgrade();
+    } else if (params['checkout'] === 'cancel') {
+      // optional: handle the cancel redirect quietly, or show a soft message
+    }
+  });
+}
 
   async onUserImageSelected(event: Event): Promise<void> {
     const file = (event.target as HTMLInputElement).files?.[0] ?? null;
@@ -173,14 +191,50 @@ tiers = [
   }
 
   selectUpgrade(tierId: string): void {
-    // Placeholder until Stripe is wired up
-    this.error.set(null);
-    console.log('Upgrade selected:', tierId);
-    // Later: kick off Stripe checkout for this tier
-    alert(`Upgrade to ${tierId} — payment coming soon!`);
+    this.checkoutLoading.set(true);
+    this.subscriptionService.checkout(tierId).subscribe({
+      next: (res) => {
+        window.location.href = res.checkout_url;
+      },
+      error: (err) => {
+        this.error.set(err?.error?.message ?? 'Could not start checkout.');
+      },
+    });
   }
 
   dismissUpgrade(): void {
     this.quotaExceeded.set(false);
   }
+
+  private confirmUpgrade(): void {
+    this.subscriptionService.getCurrentUser().subscribe({
+      next: (user) => {
+        if (user.tier === 'basic' || user.tier === 'pro') {
+          this.confirmedTier.set(user.tier);
+          this.checkoutStatus.set('success');
+          // also refresh the remaining-generations display
+          this.generationsRemaining.set(user.generations_remaining);
+          // make sure the upgrade modal is dismissed if it was open
+          this.quotaExceeded.set(false);
+        } else {
+          // webhook probably hasn't landed yet
+          this.checkoutStatus.set('processing');
+        }
+        this.router.navigate([], {
+          queryParams: { checkout: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true,
+        });
+      
+      }, 
+      error: () => {
+        this.checkoutStatus.set('processing');
+      },
+    });
+  }
+
+  dismissCheckoutBanner(): void {
+    this.checkoutStatus.set(null);
+  }
+  
 }

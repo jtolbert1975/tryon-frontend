@@ -6,6 +6,20 @@
         <p class="quota-info">{{ generationsRemaining() }} generations left this month</p>
       }
     </header>
+
+    @if (checkoutStatus() === 'success') {
+      <div class="checkout-banner success">
+        🎉 Thank you! You're now a {{ confirmedTier() === 'pro' ? 'Pro' : 'Basic' }} member.
+        <button class="banner-close" (click)="dismissCheckoutBanner()">✕</button>
+      </div>
+    }
+    
+    @if (checkoutStatus() === 'processing') {
+      <div class="checkout-banner processing">
+        Payment received! Your upgrade is processing and will be active shortly.
+        <button class="banner-close" (click)="dismissCheckoutBanner()">✕</button>
+      </div>
+    }
   
     @if (error()) {
       <div class="error-banner">{{ error() }}</div>
@@ -78,9 +92,7 @@
       <div class="upgrade-overlay">
         <div class="upgrade-card">
           <h2>You've hit your monthly limit</h2>
-          <p class="upgrade-subtitle">
-            You've used all your free generations this month. Upgrade for more.
-          </p>
+          <p class="upgrade-subtitle">...</p>
     
           <div class="tier-grid">
             @for (tier of tiers; track tier.id) {
@@ -88,7 +100,7 @@
                 <h3>{{ tier.name }}</h3>
                 <p class="tier-price">{{ tier.price }}<span>/month</span></p>
                 <p class="tier-generations">{{ tier.generations }} generations / month</p>
-                <button class="tier-btn" (click)="selectUpgrade(tier.id)">
+                <button class="tier-btn" (click)="selectUpgrade(tier.id)">   <!-- THIS button -->
                   Choose {{ tier.name }}
                 </button>
               </div>
@@ -98,5 +110,9 @@
           <button class="dismiss-btn" (click)="dismissUpgrade()">Maybe later</button>
         </div>
       </div>
+      @if (checkoutLoading()) {
+        <div class="checkout-spinner"></div>
+      }
     }
+    
   </div>
