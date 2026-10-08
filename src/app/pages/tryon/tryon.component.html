@@ -1,11 +1,22 @@
 <div class="tryon-container">
     <header class="tryon-header">
       <h1>Virtual Try-On</h1>
+      @if (generationsRemaining() !== null) {
+        <div class="quota-bar" [class.quota-low]="generationsRemaining()! <= 1">
+          @if (userTier() === 'free') {
+            <span>
+              {{ generationsRemaining() }} free {{ generationsRemaining() === 1 ? 'generation' : 'generations' }} left this month
+            </span>
+            @if (generationsRemaining()! <= 2) {
+              <button class="quota-upgrade-link" (click)="quotaExceeded.set(true)">Upgrade for more</button>
+            }
+          } @else {
+            <span>{{ generationsRemaining() }} generations left this month</span>
+          }
+        </div>
+      }
       <button class="help-btn" (click)="toggleHelp()" title="How it works" aria-label="How it works">?</button>
       <button class="logout-btn" (click)="logout()">Log out</button>
-      @if (generationsRemaining() !== null) {
-        <p class="quota-info">{{ generationsRemaining() }} generations left this month</p>
-      }
     </header>
 
     @if (checkoutStatus() === 'success') {
@@ -39,7 +50,7 @@
             }
             <label class="file-btn">
                 <span>{{ userImage ? 'Change photo' : 'Choose photo' }}</span>
-                <input type="file" accept="image/*, ,.heic,.heif,image/heic,image/heif" (change)="onUserImageSelected($event)" />
+                <input type="file" accept="image/* ,.heic,.heif,image/heic,image/heif" (change)="onUserImageSelected($event)" />
               </label>
           </div>
           
@@ -72,10 +83,6 @@
         @if (job()!.status === 'pending' || job()!.status === 'processing') {
           <div class="spinner">Generating your try-on…</div>
         }
-  
-       <!--  @if (job()!.status === 'completed' && job()!.image_url) {
-          <img class="result-image" [src]="job()!.image_url" alt="try-on result" />
-        } -->
 
         @if (job()!.status === 'completed' && job()!.image_url) {
             <img class="result-image" [src]="job()!.image_url" alt="try-on result" />
@@ -90,31 +97,12 @@
       </div>
     }
     @if (quotaExceeded()) {
-      <div class="upgrade-overlay">
-        <div class="upgrade-card">
-          <h2>You've hit your monthly limit</h2>
-          <p class="upgrade-subtitle">...</p>
-    
-          <div class="tier-grid">
-            @for (tier of tiers; track tier.id) {
-              <div class="tier-card">
-                <h3>{{ tier.name }}</h3>
-                <p class="tier-price">{{ tier.price }}<span>/month</span></p>
-                <p class="tier-generations">{{ tier.generations }} generations / month</p>
-                <button class="tier-btn" (click)="selectUpgrade(tier.id)">   <!-- THIS button -->
-                  Choose {{ tier.name }}
-                </button>
-              </div>
-            }
-            
-          </div>
-    
-          <button class="dismiss-btn" (click)="dismissUpgrade()">Maybe later</button>
-        </div>
-      </div>
-      @if (checkoutLoading()) {
-        <div class="checkout-spinner"></div>
-      }
+      <app-upgrade-modal
+        [tiers]="tiers"
+        [loading]="checkoutLoading()"
+        (selectTier)="selectUpgrade($event)"
+        (dismiss)="dismissUpgrade()"
+      />
     }
     @if (showHelp()) {
       <app-help-modal (close)="showHelp.set(false)" />

@@ -7,12 +7,13 @@ import { ImageProcessorService } from '../../services/image-processor.service';
 import { SubscriptionService } from '../../services/subscription.service';
 import { ActivatedRoute } from '@angular/router';
 import { HelpModalComponent } from '../../components/help-modal/help-modal.component';
+import { UpgradeModalComponent } from '../../components/upgrade-modal/upgrade-modal.component';
 
 
 @Component({
   selector: 'app-tryon',
   standalone: true,
-  imports: [HelpModalComponent],
+  imports: [HelpModalComponent, UpgradeModalComponent],
   templateUrl: './tryon.component.html',
   styleUrl: './tryon.component.scss',
 })
@@ -40,6 +41,7 @@ export class TryOnComponent implements OnInit {
   checkoutStatus = signal<'success' | 'processing' | null>(null);
   confirmedTier = signal<string | null>(null);
   showHelp = signal<boolean>(false);
+  userTier = signal<string | null>(null);
 
   private pollSub?: Subscription;
  
@@ -58,6 +60,15 @@ ngOnInit(): void {
     } else if (params['checkout'] === 'cancel') {
       // optional: handle the cancel redirect quietly, or show a soft message
     }
+  });
+
+  // load current quota status on page load
+  this.subscriptionService.getCurrentUser().subscribe({
+    next: (user) => {
+      this.generationsRemaining.set(user.generations_remaining);
+      this.userTier.set(user.tier);
+    },
+    error: () => {},
   });
 }
 

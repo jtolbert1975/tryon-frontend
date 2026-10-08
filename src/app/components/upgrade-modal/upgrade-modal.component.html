@@ -1,0 +1,23 @@
+<div class="upgrade-overlay">
+    <div class="upgrade-card">
+      <h2>You've hit your monthly limit</h2>
+      <p class="upgrade-subtitle">
+        You've used all your free generations this month. Upgrade for more.
+      </p>
+  
+      <div class="tier-grid">
+        @for (tier of tiers(); track tier.id) {
+          <div class="tier-card">
+            <h3>{{ tier.name }}</h3>
+            <p class="tier-price">{{ tier.price }}<span>/month</span></p>
+            <p class="tier-generations">{{ tier.generations }} generations / month</p>
+            <button class="tier-btn" (click)="selectTier.emit(tier.id)" [disabled]="loading()">
+              {{ loading() ? 'Redirecting…' : 'Choose ' + tier.name }}
+            </button>
+          </div>
+        }
+      </div>
+  
+      <button class="dismiss-btn" (click)="dismiss.emit()">Maybe later</button>
+    </div>
+  </div>
