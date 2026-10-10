@@ -1,6 +1,8 @@
 <div class="tryon-container">
-    <header class="tryon-header">
-      <h1>Virtual Try-On</h1>
+  <header class="tryon-header"></header>
+
+  <div class="control-row">
+    <div class="quota-info-wrap">
       @if (generationsRemaining() !== null) {
         <div class="quota-bar" [class.quota-low]="generationsRemaining()! <= 1">
           @if (userTier() === 'free') {
@@ -15,9 +17,13 @@
           }
         </div>
       }
+    </div>
+  
+    <div class="header-actions">
       <button class="help-btn" (click)="toggleHelp()" title="How it works" aria-label="How it works">?</button>
       <button class="logout-btn" (click)="logout()">Log out</button>
-    </header>
+    </div>
+  </div>
 
     @if (checkoutStatus() === 'success') {
       <div class="checkout-banner success">

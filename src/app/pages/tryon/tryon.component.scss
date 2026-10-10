@@ -3,29 +3,41 @@
     margin: 0 auto;
     padding: 2rem 1rem;
   }
-  
+
   .tryon-header {
+    background-image: url('/adattamento_header.jpg');
+    background-size: cover;
+    background-position: center;
+    min-height: 180px;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+  }
+  
+  .control-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;   // stacks gracefully on narrow screens
+  }
   
-    h1 {
-      margin: 0;
-      color: var(--color-dark);
-    }
-  
-    .logout-btn {
-      background: none;
-      border: 1px solid var(--color-dark);
-      color: var(--color-dark);
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-  
-      &:hover { background-color: var(--color-dark); color: var(--color-offwhite); }
-    }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .logout-btn {
+    background: none;
+    border: 1px solid var(--color-dark);
+    color: var(--color-dark);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+
+    &:hover { background-color: var(--color-dark); color: var(--color-offwhite); }
   }
   
   .upload-grid {
