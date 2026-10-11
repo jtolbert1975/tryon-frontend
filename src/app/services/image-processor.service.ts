@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { heicTo, isHeic} from 'heic-to';
+import exifr from 'exifr';
 
 @Injectable({
   providedIn: 'root'
@@ -8,6 +9,8 @@ export class ImageProcessorService {
 
  //Tune these to taste
  private readonly MAX_DIMENSION = 1600; // px, longest slide
+ private readonly MAX_WIDTH = 1200;
+  private readonly MAX_HEIGHT = 1600;
  private readonly JPEG_QUALITY = 0.85;
 
  /**
@@ -16,6 +19,14 @@ export class ImageProcessorService {
   */
 async process(file: File): Promise<File> {
   let workingBlob: Blob = file;
+
+   // read EXIF orientation from the ORIGINAL file (before any conversion strips it)
+   let orientation = 1;
+   try {
+     orientation = (await exifr.orientation(file)) || 1;
+   } catch {
+     orientation = 1; // no EXIF or unreadable → assume normal
+   }
 
   // 1. Convert HEIC -> JPEG if necessary
   if (await isHeic(file)) {
@@ -49,24 +60,44 @@ async process(file: File): Promise<File> {
 
 }
 
-private drawResized(img: HTMLImageElement): { canvas: HTMLCanvasElement} {
-  let {width, height } = img;
+private drawResized(img: HTMLImageElement, orientation: number = 1): { canvas: HTMLCanvasElement } {
+  let width = img.width;
+  let height = img.height;
 
-  if (width > this.MAX_DIMENSION || height > this.MAX_DIMENSION){
-    if(width >= height){
-      height = Math.round(height * (this.MAX_DIMENSION / width));
-      width = this.MAX_DIMENSION;
-    } else {
-      width = Math.round(width * (this.MAX_DIMENSION / height));
-      height = this.MAX_DIMENSION;
-    }
+  // orientations 5-8 are rotated 90°/270°, so the displayed dimensions are swapped
+  const swap = orientation >= 5 && orientation <= 8;
+  let displayWidth = swap ? height : width;
+  let displayHeight = swap ? width : height;
+
+  // scale to fit within MAX_WIDTH x MAX_HEIGHT (using display dimensions)
+  if (displayWidth > this.MAX_WIDTH || displayHeight > this.MAX_HEIGHT) {
+    const scale = Math.min(this.MAX_WIDTH / displayWidth, this.MAX_HEIGHT / displayHeight);
+    displayWidth = Math.round(displayWidth * scale);
+    displayHeight = Math.round(displayHeight * scale);
   }
 
   const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
+  canvas.width = displayWidth;
+  canvas.height = displayHeight;
   const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(img, 0, 0, width, height);
+
+  // apply the EXIF orientation transform before drawing
+  switch (orientation) {
+    case 2: ctx.transform(-1, 0, 0, 1, displayWidth, 0); break;          // flip horizontal
+    case 3: ctx.transform(-1, 0, 0, -1, displayWidth, displayHeight); break; // 180°
+    case 4: ctx.transform(1, 0, 0, -1, 0, displayHeight); break;         // flip vertical
+    case 5: ctx.transform(0, 1, 1, 0, 0, 0); break;                      // transpose
+    case 6: ctx.transform(0, 1, -1, 0, displayWidth, 0); break;          // 90° CW
+    case 7: ctx.transform(0, -1, -1, 0, displayWidth, displayHeight); break; // transverse
+    case 8: ctx.transform(0, -1, 1, 0, 0, displayHeight); break;         // 90° CCW
+    default: break;                                                       // orientation 1, no transform
+  }
+
+  // draw using the ORIGINAL (unswapped) dimensions scaled to fit
+  const drawWidth = swap ? displayHeight : displayWidth;
+  const drawHeight = swap ? displayWidth : displayHeight;
+  ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
+
   return { canvas };
 }
 
