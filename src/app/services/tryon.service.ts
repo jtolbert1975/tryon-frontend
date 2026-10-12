@@ -20,10 +20,16 @@ export class TryOnService {
   private apiUrl = environment.apiUrl;
 
   // POST the two images as multipart/form-data
-  create(userImage: File, clothingImage: File): Observable<TryOnJob> {
+  create(
+    userImage: File,
+    garments: { outfit: File | null; top: File | null; bottom: File | null; shoes: File | null }
+  ): Observable<TryOnJob> {
     const formData = new FormData();
     formData.append('user_image', userImage);
-    formData.append('clothing_image', clothingImage);
+    if (garments.outfit) formData.append('outfit_image', garments.outfit);
+    if (garments.top)    formData.append('top_image', garments.top);
+    if (garments.bottom) formData.append('bottom_image', garments.bottom);
+    if (garments.shoes)  formData.append('shoes_image', garments.shoes);
     return this.http.post<TryOnJob>(`${this.apiUrl}/tryon`, formData);
   }
 

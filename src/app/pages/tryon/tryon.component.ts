@@ -26,15 +26,24 @@ export class TryOnComponent implements OnInit {
   private route = inject(ActivatedRoute);
 
   userImage: File | null = null;
-  clothingImage: File | null = null;
+  outfitImage: File | null = null;
+  topImage: File | null = null;
+  bottomImage: File | null = null;
+  shoesImage: File | null = null;
   userImagePreview = signal<string | null>(null);
-  clothingImagePreview = signal<string | null>(null);
+  outfitImagePreview = signal<string | null>(null);
+  topImagePreview = signal<string | null>(null);
+  bottomImagePreview = signal<string | null>(null);
+  shoesImagePreview = signal<string | null>(null);
 
   job = signal<TryOnJob | null>(null);
   error = signal<string | null>(null);
   submitting = signal<boolean>(false);
   processingUser = signal<boolean>(false);
-  processingClothing = signal<boolean>(false);
+  processingOutfit = signal<boolean>(false);
+  processingTop = signal<boolean>(false);
+  processingBottom = signal<boolean>(false);
+  processingShoes = signal<boolean>(false);
   generationsRemaining = signal<number | null>(null);
   quotaExceeded = signal<boolean>(false);
   checkoutLoading = signal<boolean>(false);
@@ -43,7 +52,16 @@ export class TryOnComponent implements OnInit {
   showHelp = signal<boolean>(false);
   userTier = signal<string | null>(null);
 
+  // Outfit is exclusive with Top/Bottom
+  outfitDisabled = signal<boolean>(false);
+  topBottomDisabled = signal<boolean>(false);
+
   private pollSub?: Subscription;
+  private updateExclusivity(): void {
+    // if outfit is set, disable top/bottom; if top or bottom is set, disable outfit
+    this.topBottomDisabled.set(this.outfitImage !== null);
+    this.outfitDisabled.set(this.topImage !== null || this.bottomImage !== null);
+  }
  
 
   // tier options for the upgrade prompt (mirrors config/tiers.php)
@@ -72,68 +90,112 @@ ngOnInit(): void {
   });
 }
 
-  async onUserImageSelected(event: Event): Promise<void> {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    if (!file) return;
-    this.error.set(null);
-    this.processingUser.set(true);
-    try {
-      const processed = await this.imageProcessor.process(file);
-      this.userImage = processed;
-      this.userImagePreview.set(URL.createObjectURL(processed));
-    } catch {
-      this.error.set('Could not process that image. Try a different photo.');
-    } finally {
-      this.processingUser.set(false);
-    }
+async onUserImageSelected(event: Event): Promise<void> {
+  const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+  if (!file) return;
+  this.error.set(null);
+  this.processingUser.set(true);
+  try {
+    const processed = await this.imageProcessor.process(file);
+    this.userImage = processed;
+    this.userImagePreview.set(URL.createObjectURL(processed));
+  } catch {
+    this.error.set('Could not process that image. Try a different photo.');
+  } finally {
+    this.processingUser.set(false);
   }
-  
-  async onClothingImageSelected(event: Event): Promise<void> {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    if (!file) return;
-    this.error.set(null);
-    this.processingClothing.set(true);
-    try {
-      const processed = await this.imageProcessor.process(file);
-      this.clothingImage = processed;
-      this.clothingImagePreview.set(URL.createObjectURL(processed));
-    } catch {
-      this.error.set('Could not process that image. Try a different photo.');
-    } finally {
-      this.processingClothing.set(false);
-    }
+}
+
+// generic handler for the garment slots
+async onSlotSelected(event: Event, slot: 'outfit' | 'top' | 'bottom' | 'shoes'): Promise<void> {
+  const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+  if (!file) return;
+  this.error.set(null);
+
+  const processingSignal = {
+    outfit: this.processingOutfit,
+    top: this.processingTop,
+    bottom: this.processingBottom,
+    shoes: this.processingShoes,
+  }[slot];
+
+  const previewSignal = {
+    outfit: this.outfitImagePreview,
+    top: this.topImagePreview,
+    bottom: this.bottomImagePreview,
+    shoes: this.shoesImagePreview,
+  }[slot];
+
+  processingSignal.set(true);
+  try {
+    const processed = await this.imageProcessor.process(file);
+    // assign to the right file property
+    if (slot === 'outfit') this.outfitImage = processed;
+    else if (slot === 'top') this.topImage = processed;
+    else if (slot === 'bottom') this.bottomImage = processed;
+    else if (slot === 'shoes') this.shoesImage = processed;
+
+    previewSignal.set(URL.createObjectURL(processed));
+    this.updateExclusivity();
+  } catch {
+    this.error.set('Could not process that image. Try a different photo.');
+  } finally {
+    processingSignal.set(false);
+  }
+}
+
+// clear a single slot (for a remove/change action)
+clearSlot(slot: 'outfit' | 'top' | 'bottom' | 'shoes'): void {
+  if (slot === 'outfit') { this.outfitImage = null; this.outfitImagePreview.set(null); }
+  else if (slot === 'top') { this.topImage = null; this.topImagePreview.set(null); }
+  else if (slot === 'bottom') { this.bottomImage = null; this.bottomImagePreview.set(null); }
+  else if (slot === 'shoes') { this.shoesImage = null; this.shoesImagePreview.set(null); }
+  this.updateExclusivity();
+}
+
+submit(): void {
+  if (!this.userImage) {
+    this.error.set('Please add a photo of yourself.');
+    return;
   }
 
-  submit(): void {
-    if (!this.userImage || !this.clothingImage) {
-      this.error.set('Please select both a person image and a clothing image.');
-      return;
-    }
-    this.error.set(null);
-    this.submitting.set(true);
-    this.job.set(null);
+  const garments = {
+    outfit: this.outfitImage,
+    top: this.topImage,
+    bottom: this.bottomImage,
+    shoes: this.shoesImage,
+  };
 
-    this.tryOnService.create(this.userImage, this.clothingImage).subscribe({
-      next: (job) => {
-        this.job.set(job);
-        this.submitting.set(false);
-        if (typeof job.generations_remaining === 'number') {
-          this.generationsRemaining.set(job.generations_remaining);
-        }
-        this.startPolling(job.id);
-      },
-      error: (err) => {
-        this.submitting.set(false);
-        if (err?.status === 429) {
-          this.error.set(err.error?.message ?? "You've reached your monthly generation limit.");
-          // optionally set a flag to show an upgrade prompt later
-          this.quotaExceeded.set(true);
-        } else {
-          this.error.set(err?.error?.message ?? 'Failed to start try-on.');
-        }
-      },
-    });
+  const hasGarment = Object.values(garments).some(g => g !== null);
+  if (!hasGarment) {
+    this.error.set('Please add at least one clothing item.');
+    return;
   }
+
+  this.error.set(null);
+  this.submitting.set(true);
+  this.job.set(null);
+
+  this.tryOnService.create(this.userImage, garments).subscribe({
+    next: (job) => {
+      this.job.set(job);
+      this.submitting.set(false);
+      if (typeof job.generations_remaining === 'number') {
+        this.generationsRemaining.set(job.generations_remaining);
+      }
+      this.startPolling(job.id);
+    },
+    error: (err) => {
+      this.submitting.set(false);
+      if (err?.status === 429) {
+        this.error.set(err.error?.message ?? "You've reached your monthly generation limit.");
+        this.quotaExceeded.set(true);
+      } else {
+        this.error.set(err?.error?.message ?? 'Failed to start try-on.');
+      }
+    },
+  });
+}
 
   private startPolling(id: number): void {
     this.pollSub?.unsubscribe();
@@ -158,10 +220,12 @@ ngOnInit(): void {
     this.job.set(null);
     this.error.set(null);
   
-    // Keep the person image — only clear the garment and result
-    this.clothingImage = null;
-    this.clothingImagePreview.set(null);
-    // userImage and userImagePreview intentionally preserved
+    // Keep the person image — clear all garment slots and result
+    this.outfitImage = null; this.outfitImagePreview.set(null);
+    this.topImage = null; this.topImagePreview.set(null);
+    this.bottomImage = null; this.bottomImagePreview.set(null);
+    this.shoesImage = null; this.shoesImagePreview.set(null);
+    this.updateExclusivity();
   }
 
   logout(): void {
