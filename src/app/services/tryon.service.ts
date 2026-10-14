@@ -22,7 +22,8 @@ export class TryOnService {
   // POST the two images as multipart/form-data
   create(
     userImage: File,
-    garments: { outfit: File | null; top: File | null; bottom: File | null; shoes: File | null }
+    garments: { outfit: File | null; top: File | null; bottom: File | null; shoes: File | null },
+    accessories: { file: File | null; type: string }[] = []
   ): Observable<TryOnJob> {
     const formData = new FormData();
     formData.append('user_image', userImage);
@@ -30,6 +31,14 @@ export class TryOnService {
     if (garments.top)    formData.append('top_image', garments.top);
     if (garments.bottom) formData.append('bottom_image', garments.bottom);
     if (garments.shoes)  formData.append('shoes_image', garments.shoes);
+  
+    accessories.forEach((acc, i) => {
+      if (acc.file) {
+        formData.append(`accessories[${i}][image]`, acc.file);
+        formData.append(`accessories[${i}][type]`, acc.type);
+      }
+    });
+  
     return this.http.post<TryOnJob>(`${this.apiUrl}/tryon`, formData);
   }
 

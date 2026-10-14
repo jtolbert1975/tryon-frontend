@@ -140,6 +140,37 @@
     </div>
 
   </div>
+  <!-- Accessories (dynamic) -->
+<div class="accessories-section">
+  <h3>Accessories</h3>
+
+  @for (acc of accessories(); track acc.id) {
+    <div class="accessory-row">
+      <select class="accessory-type" [value]="acc.type"
+              (change)="setAccessoryType(acc.id, $any($event.target).value)">
+        @for (t of accessoryTypes; track t.value) {
+          <option [value]="t.value">{{ t.label }}</option>
+        }
+      </select>
+
+      @if (acc.processing) {
+        <span class="accessory-status">Preparing…</span>
+      } @else if (acc.preview) {
+        <img class="accessory-thumb" [src]="acc.preview" alt="accessory preview" />
+      }
+
+      <label class="file-btn small">
+        <span>{{ acc.file ? 'Change' : 'Add image' }}</span>
+        <input type="file" accept="image/*,.heic,.heif,image/heic,image/heif"
+               (change)="onAccessorySelected($event, acc.id)" />
+      </label>
+
+      <button class="clear-slot" (click)="removeAccessory(acc.id)">Remove</button>
+    </div>
+  }
+
+  <button class="add-accessory-btn" (click)="addAccessory()">+ Add accessory</button>
+</div>
 
   <button class="submit-btn" (click)="submit()" [disabled]="submitting()">
     {{ submitting() ? 'Starting…' : 'Run Try-On' }}

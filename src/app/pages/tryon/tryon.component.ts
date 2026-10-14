@@ -9,6 +9,13 @@ import { ActivatedRoute } from '@angular/router';
 import { HelpModalComponent } from '../../components/help-modal/help-modal.component';
 import { UpgradeModalComponent } from '../../components/upgrade-modal/upgrade-modal.component';
 
+interface AccessoryItem {
+  id: number;              // stable key for @for tracking
+  file: File | null;
+  preview: string | null;
+  type: string;            // 'watch', 'scarf', etc.
+  processing: boolean;
+}
 
 @Component({
   selector: 'app-tryon',
@@ -69,6 +76,24 @@ tiers = [
   { name: 'Basic', price: '$1.99', generations: 10, id: 'basic' },
   { name: 'Pro',   price: '$2.99', generations: 20, id: 'pro' },
 ];
+
+// the accessory type options for the dropdown
+accessoryTypes = [
+  { value: 'watch',    label: 'Watch' },
+  { value: 'scarf',    label: 'Scarf' },
+  { value: 'tie',      label: 'Tie' },
+  { value: 'earrings', label: 'Earrings' },
+  { value: 'hat',      label: 'Hat' },
+  { value: 'necklace', label: 'Necklace' },
+  { value: 'belt',     label: 'Belt' },
+  { value: 'glasses',  label: 'Glasses' },
+  { value: 'bag',      label: 'Bag' },
+];
+
+accessories = signal<AccessoryItem[]>([]);
+private nextAccessoryId = 0;
+
+
   
   
 ngOnInit(): void {
@@ -166,17 +191,20 @@ submit(): void {
     shoes: this.shoesImage,
   };
 
-  const hasGarment = Object.values(garments).some(g => g !== null);
-  if (!hasGarment) {
-    this.error.set('Please add at least one clothing item.');
-    return;
-  }
+   // only accessories that actually have an image
+   const filledAccessories = this.accessories().filter(a => a.file !== null);
 
+   const hasGarment =
+   Object.values(garments).some(g => g !== null) || filledAccessories.length > 0;
+ if (!hasGarment) {
+   this.error.set('Please add at least one clothing item.');
+   return;
+ }
   this.error.set(null);
   this.submitting.set(true);
   this.job.set(null);
 
-  this.tryOnService.create(this.userImage, garments).subscribe({
+  this.tryOnService.create(this.userImage, garments, filledAccessories).subscribe({
     next: (job) => {
       this.job.set(job);
       this.submitting.set(false);
@@ -317,6 +345,47 @@ submit(): void {
 
   toggleHelp(): void {
     this.showHelp.update(v => !v);
+  }
+
+  addAccessory(): void {
+    this.accessories.update(list => [
+      ...list,
+      { id: this.nextAccessoryId++, file: null, preview: null, type: 'watch', processing: false },
+    ]);
+  }
+  
+  removeAccessory(id: number): void {
+    this.accessories.update(list => list.filter(a => a.id !== id));
+  }
+  
+  setAccessoryType(id: number, type: string): void {
+    this.accessories.update(list =>
+      list.map(a => a.id === id ? { ...a, type } : a)
+    );
+  }
+  
+  async onAccessorySelected(event: Event, id: number): Promise<void> {
+    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+    if (!file) return;
+    this.error.set(null);
+  
+    // mark this accessory processing
+    this.accessories.update(list =>
+      list.map(a => a.id === id ? { ...a, processing: true } : a)
+    );
+  
+    try {
+      const processed = await this.imageProcessor.process(file);
+      const preview = URL.createObjectURL(processed);
+      this.accessories.update(list =>
+        list.map(a => a.id === id ? { ...a, file: processed, preview, processing: false } : a)
+      );
+    } catch {
+      this.error.set('Could not process that image. Try a different photo.');
+      this.accessories.update(list =>
+        list.map(a => a.id === id ? { ...a, processing: false } : a)
+      );
+    }
   }
   
 }
