@@ -53,6 +53,7 @@ export class TryOnComponent implements OnInit {
   showHelp = signal<boolean>(false);
   userTier = signal<string | null>(null);
   accessories = signal<AccessoryItem[]>([]);
+  accessoryLimit = signal<number>(1);
 
   // Outfit is exclusive with Top/Bottom
   outfitDisabled = signal<boolean>(false);
@@ -90,6 +91,7 @@ ngOnInit(): void {
     next: (user) => {
       this.generationsRemaining.set(user.generations_remaining);
       this.userTier.set(user.tier);
+      this.accessoryLimit.set(user.accessory_limit ?? 1);
     },
     error: () => {},
   });

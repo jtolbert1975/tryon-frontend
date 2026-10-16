@@ -142,7 +142,12 @@
   </div>
   <!-- Accessories (dynamic) -->
 <div class="accessories-section">
-  <app-accessories [(accessories)]="accessories" [(error)]="error" />
+  <app-accessories 
+  [(accessories)]="accessories" 
+  [(error)]="error" 
+  [limit]="accessoryLimit()"
+  (upgradeRequested)="quotaExceeded.set(true)"
+  />
 </div>
 
   <button class="submit-btn" (click)="submit()" [disabled]="submitting()">

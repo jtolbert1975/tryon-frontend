@@ -3,6 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+export interface CurrentUser {
+  tier: string;
+  generations_remaining: number;
+  accessory_limit: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SubscriptionService {
   private http = inject(HttpClient);
@@ -15,9 +21,7 @@ export class SubscriptionService {
     );
   }
 
-  getCurrentUser(): Observable<{ tier: string; generations_remaining: number }> {
-    return this.http.get<{ tier: string; generations_remaining: number }>(
-      `${this.apiUrl}/user`
-    );
+  getCurrentUser(): Observable<CurrentUser> {
+    return this.http.get<CurrentUser>(`${this.apiUrl}/user`);
   }
 }

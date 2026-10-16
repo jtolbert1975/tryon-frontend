@@ -1,4 +1,4 @@
-import { Component, inject, model } from '@angular/core';
+import { Component, inject, model, input, output, computed } from '@angular/core';
 import { ImageProcessorService } from '../../services/image-processor.service';
 import { AccessoryItem } from '../../models/accessory';
 
@@ -30,6 +30,19 @@ export class AccessoriesComponent {
   ];
 
   error = model<string | null>(null);   // surface processing errors to the parent
+
+  // the user's per-look accessory cap, from the parent
+  limit = input<number>(1);
+
+  // ask the parent to show the upgrade modal
+  upgradeRequested = output<void>();
+
+  // how many accessories are currently added
+  count = computed(() => this.accessories().length);
+
+  // whether the user can add more
+  atLimit = computed(() => this.count() >= this.limit());
+
 
   addAccessory(): void {
     this.accessories.update(list => [
@@ -69,5 +82,14 @@ export class AccessoriesComponent {
         list.map(a => a.id === id ? { ...a, processing: false } : a)
       );
     }
+  }
+
+   // guard addAccessory against the limit
+   tryAddAccessory(): void {
+    if (this.atLimit()) {
+      this.upgradeRequested.emit();
+      return;
+    }
+    this.addAccessory();
   }
 }
