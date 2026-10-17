@@ -69,8 +69,8 @@ export class TryOnComponent implements OnInit {
 
   // tier options for the upgrade prompt (mirrors config/tiers.php)
 tiers = [
-  { name: 'Basic', price: '$1.99', generations: 10, id: 'basic' },
-  { name: 'Pro',   price: '$2.99', generations: 20, id: 'pro' },
+  { name: 'Basic', price: '$2.99', generations: 10, id: 'basic' },
+  { name: 'Pro',   price: '$3.99', generations: 20, id: 'pro' },
 ];
 
 
