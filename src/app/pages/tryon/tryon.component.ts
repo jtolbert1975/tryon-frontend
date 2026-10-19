@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription, interval, switchMap, takeWhile } from 'rxjs';
 import { TryOnService, TryOnJob } from '../../services/tryon.service';
@@ -10,11 +10,13 @@ import { HelpModalComponent } from '../../components/help-modal/help-modal.compo
 import { UpgradeModalComponent } from '../../components/upgrade-modal/upgrade-modal.component';
 import { AccessoryItem } from '../../models/accessory';
 import { AccessoriesComponent } from '../../components/accessories/accessories.component';
+import { ShopThisLookComponent } from '../../components/shop-this-look/shop-this-look.component';
+import { ShopProduct } from '../../models/shop-product';
 
 @Component({
   selector: 'app-tryon',
   standalone: true,
-  imports: [HelpModalComponent, UpgradeModalComponent, AccessoriesComponent],
+  imports: [HelpModalComponent, UpgradeModalComponent, AccessoriesComponent, ShopThisLookComponent],
   templateUrl: './tryon.component.html',
   styleUrl: './tryon.component.scss',
 })
@@ -54,6 +56,7 @@ export class TryOnComponent implements OnInit {
   userTier = signal<string | null>(null);
   accessories = signal<AccessoryItem[]>([]);
   accessoryLimit = signal<number>(1);
+  hasRunTryOn = signal<boolean>(false);
 
   // Outfit is exclusive with Top/Bottom
   outfitDisabled = signal<boolean>(false);
@@ -73,8 +76,19 @@ tiers = [
   { name: 'Pro',   price: '$3.99', generations: 20, id: 'pro' },
 ];
 
+// which garment/accessory categories are filled — drives recommendations
+filledCategories = computed(() => {
+  const cats: string[] = [];
+  if (this.outfitImage) cats.push('outfit');
+  if (this.topImage) cats.push('top');
+  if (this.bottomImage) cats.push('bottom');
+  if (this.shoesImage) cats.push('shoes');
+  this.accessories().forEach(a => { if (a.file) cats.push(a.type); });
+  return cats;
+});
 
-
+// paid users get the hide toggle
+isPaidUser = computed(() => this.userTier() === 'basic' || this.userTier() === 'pro');
   
   
 ngOnInit(): void {
@@ -194,6 +208,7 @@ submit(): void {
         this.generationsRemaining.set(job.generations_remaining);
       }
       this.startPolling(job.id);
+      this.hasRunTryOn.set(true);
     },
     error: (err) => {
       this.submitting.set(false);
@@ -327,6 +342,49 @@ submit(): void {
 
   toggleHelp(): void {
     this.showHelp.update(v => !v);
+  }
+
+  async onTryOnProduct(event: { product: ShopProduct; slot: string }): Promise<void> {
+    const { product, slot } = event;
+    this.error.set(null);
+  
+    try {
+      const response = await fetch(product.imageUrl);
+      if (!response.ok) throw new Error('fetch failed');
+      const blob = await response.blob();
+      const file = new File([blob], `${product.id}.jpg`, { type: blob.type || 'image/jpeg' });
+  
+      const processed = await this.imageProcessor.process(file);
+      const preview = URL.createObjectURL(processed);
+  
+      // place into the chosen slot
+      if (slot === 'outfit')      { this.outfitImage = processed; this.outfitImagePreview.set(preview); }
+      else if (slot === 'top')    { this.topImage = processed; this.topImagePreview.set(preview); }
+      else if (slot === 'bottom') { this.bottomImage = processed; this.bottomImagePreview.set(preview); }
+      else if (slot === 'shoes')  { this.shoesImage = processed; this.shoesImagePreview.set(preview); }
+      else if (slot === 'accessory') {
+        const accType = this.mapToAccessoryType(product.category);
+        this.accessories.update(list => [
+          ...list,
+          { id: Date.now(), file: processed, preview, type: accType, processing: false },
+        ]);
+      }
+  
+      // switch back to the upload view so the user sees the slot they just filled
+      this.job.set(null);
+      this.pollSub?.unsubscribe();
+  
+      this.updateExclusivity();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+    } catch {
+      this.error.set('Could not load that item. You can still visit the store to buy it.');
+    }
+  }
+  
+  private mapToAccessoryType(category: string): string {
+    const valid = ['watch','scarf','tie','earrings','hat','necklace','belt','glasses','bag'];
+    return valid.includes(category) ? category : 'watch'; // fallback
   }
 
   

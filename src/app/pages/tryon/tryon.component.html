@@ -153,6 +153,14 @@
   <button class="submit-btn" (click)="submit()" [disabled]="submitting()">
     {{ submitting() ? 'Starting…' : 'Run Try-On' }}
   </button>
+
+  @if (hasRunTryOn()) {
+    <app-shop-this-look 
+    [categories]="filledCategories()" 
+    [canHide]="isPaidUser()" 
+    (tryOnProduct)="onTryOnProduct($event)"
+    />
+  }
 }
   
     <!-- Status / result view -->
@@ -175,6 +183,7 @@
   
         <button class="reset-btn" (click)="reset()">Try Another</button>
       </div>
+      <app-shop-this-look [categories]="filledCategories()" [canHide]="isPaidUser()" />
     }
     @if (quotaExceeded()) {
       <app-upgrade-modal

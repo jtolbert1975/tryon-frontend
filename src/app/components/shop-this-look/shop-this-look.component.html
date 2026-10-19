@@ -1,0 +1,62 @@
+@if (products().length > 0) {
+    <div class="shop-section">
+      <div class="shop-header">
+        <h3>Shop this look</h3>
+        <div class="shop-controls">
+            <div class="gender-filter">
+              <button [class.active]="gender() === 'all'" (click)="setGender('all')">All</button>
+              <button [class.active]="gender() === 'womens'" (click)="setGender('womens')">Women's</button>
+              <button [class.active]="gender() === 'mens'" (click)="setGender('mens')">Men's</button>
+            </div>
+            @if (canHide()) {
+              <button class="shop-toggle" (click)="toggleHidden()">
+                {{ hidden() ? 'Show' : 'Hide' }}
+              </button>
+            }
+          </div>
+      </div>
+
+      <!-- Slot picker modal -->
+@if (pickerFor(); as product) {
+    <div class="picker-overlay" (click)="closePicker()">
+      <div class="picker-card" (click)="$event.stopPropagation()">
+        <h4>Try on "{{ product.name }}"</h4>
+        <p class="picker-sub">Add it to:</p>
+        <div class="picker-slots">
+          @for (slot of slotOptions; track slot.value) {
+            <button
+              type="button"
+              class="picker-slot-btn"
+              [class.recommended]="slot.value === defaultSlotFor(product)"
+              (click)="chooseSlot(product, slot.value)">
+              {{ slot.label }}
+              @if (slot.value === defaultSlotFor(product)) {
+                <span class="rec-tag">suggested</span>
+              }
+            </button>
+          }
+        </div>
+        <button class="picker-cancel" (click)="closePicker()">Cancel</button>
+      </div>
+    </div>
+  }
+  
+      @if (!hidden()) {
+        <div class="shop-strip">
+          @for (product of products(); track product.id) {
+            <div class="shop-card">
+                <a [href]="product.affiliateUrl" target="_blank" rel="noopener sponsored">
+                  <img [src]="product.imageUrl" [alt]="product.name" />
+                </a>
+                <div class="shop-card-info">
+                  <span class="shop-card-name">{{ product.name }}</span>
+                  <span class="shop-card-price">{{ product.price }}</span>
+                  <button type="button" class="try-on-btn" (click)="openPicker(product)">Try it on</button>
+                </div>
+              </div>
+          }
+        </div>
+      }
+    </div>
+    
+  }
