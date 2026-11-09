@@ -1,0 +1,87 @@
+<header class="hero">
+  <div class="hero-inner">
+    <h1>See how it looks before you buy it.</h1>
+    <p>Upload a photo of yourself and a piece of clothing. Adattamento shows you wearing it in seconds.</p>
+    <nav class="hero-links">
+      <a routerLink="/login">Log in</a>
+      <a routerLink="/register" class="primary">Sign up</a>
+    </nav>
+  </div>
+</header>
+
+<main class="trial">
+  @if (job()?.status === 'completed') {
+    <section class="card result">
+      <h2>Your look</h2>
+      <img [src]="job()!.image_url" alt="You wearing the item" />
+
+      <div class="cta">
+        <p><strong>Like it?</strong> Create a free account to save looks and get more try-ons every month.</p>
+        <a routerLink="/register" class="btn">Sign up to try more</a>
+      </div>
+
+      @if (!emailSaved()) {
+        <div class="email-box">
+          <label>
+            Want us to email you updates? (optional)
+            <input type="email" [(ngModel)]="email" name="email" placeholder="you@example.com" autocomplete="email" />
+          </label>
+          <label class="consent">
+            <input type="checkbox" [(ngModel)]="marketingConsent" name="consent" />
+            I agree to receive occasional emails from Adattamento. I can unsubscribe at any time.
+          </label>
+          @if (emailError()) { <div class="error-banner">{{ emailError() }}</div> }
+          <button type="button" class="btn secondary" (click)="saveEmail()" [disabled]="!email">Save my email</button>
+        </div>
+      } @else {
+        <p class="saved">Thanks! We saved your email.</p>
+      }
+    </section>
+  } @else if (job()) {
+    <section class="card result">
+      <div class="spinner">Creating your look…</div>
+      <p class="hint">This usually takes under a minute.</p>
+    </section>
+  } @else if (!trialAvailable()) {
+    <section class="card result">
+      <h2>You've used your free try-on</h2>
+      <p>Create a free account to keep creating looks. Plans start with 3 try-ons a month.</p>
+      <a routerLink="/register" class="btn">Sign up</a>
+      <p class="switch">Already have an account? <a routerLink="/login">Log in</a></p>
+    </section>
+  } @else {
+    <section class="card">
+      <h2>Try it free. No sign-up needed.</h2>
+
+      @if (error()) { <div class="error-banner">{{ error() }}</div> }
+
+      <div class="uploads">
+        <div class="upload">
+          <h3>1. Your photo</h3>
+          @if (personPreview()) { <img [src]="personPreview()" alt="Your photo preview" /> }
+          <input type="file" accept="image/*,.heic,.heif" (change)="onFileChange($event, 'person')" />
+        </div>
+
+        <div class="upload">
+          <h3>2. The clothing</h3>
+          <label class="slot">
+            What is it?
+            <select [(ngModel)]="slot" name="slot">
+              <option value="top">Top</option>
+              <option value="bottom">Bottom</option>
+              <option value="outfit">Full outfit</option>
+              <option value="shoes">Shoes</option>
+            </select>
+          </label>
+          @if (garmentPreview()) { <img [src]="garmentPreview()" alt="Clothing preview" /> }
+          <input type="file" accept="image/*,.heic,.heif" (change)="onFileChange($event, 'garment')" />
+        </div>
+      </div>
+
+      <button type="button" class="btn" (click)="onSubmit()" [disabled]="!canSubmit()">
+        {{ processing() ? 'Working…' : 'Try it on' }}
+      </button>
+      <p class="hint">One free try-on per visitor. Your photos are deleted from our servers within 24 hours.</p>
+    </section>
+  }
+</main>
