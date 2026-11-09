@@ -1,6 +1,7 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subscription, interval, switchMap, takeWhile } from 'rxjs';
+import { Subscription, firstValueFrom, interval, switchMap, takeWhile } from 'rxjs';
+import { ShopService } from '../../services/shop.service';
 import { TryOnService, TryOnJob } from '../../services/tryon.service';
 import { AuthService } from '../../services/auth.service';
 import { ImageProcessorService } from '../../services/image-processor.service';
@@ -22,6 +23,7 @@ import { ShopProduct } from '../../models/shop-product';
 })
 export class TryOnComponent implements OnInit {
   private tryOnService = inject(TryOnService);
+  private shopService = inject(ShopService);
   private auth = inject(AuthService);
   private router = inject(Router);
   private imageProcessor = inject(ImageProcessorService);
@@ -349,9 +351,7 @@ submit(): void {
     this.error.set(null);
   
     try {
-      const response = await fetch(product.imageUrl);
-      if (!response.ok) throw new Error('fetch failed');
-      const blob = await response.blob();
+      const blob = await firstValueFrom(this.shopService.fetchProductImage(product.imageUrl));
       const file = new File([blob], `${product.id}.jpg`, { type: blob.type || 'image/jpeg' });
   
       const processed = await this.imageProcessor.process(file);

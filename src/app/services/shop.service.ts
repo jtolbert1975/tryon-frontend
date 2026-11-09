@@ -1,48 +1,29 @@
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { ShopProduct } from '../models/shop-product';
 
 @Injectable({ providedIn: 'root' })
 export class ShopService {
-  // PLACEHOLDER data. Later: replace this method's body with a real
-  // affiliate API call (Amazon PA-API, etc.). The signature stays the same.
+  private http = inject(HttpClient);
+  private apiUrl = environment.apiUrl;
+
+  // Products come from the Laravel backend, which talks to the configured
+  // affiliate provider (mock until an affiliate network account is live).
   getRecommendations(categories: string[], gender: 'all' | 'womens' | 'mens' = 'all'): Observable<ShopProduct[]> {
-    let all = this.placeholderProducts();
-  
-    // filter by gender: a specific choice shows that gender + unisex items
-    if (gender !== 'all') {
-      all = all.filter(p => p.gender === gender || p.gender === 'unisex');
-    }
-  
-    // prioritize products matching the filled slot categories, then fill with general
-    const matched = all.filter(p => categories.includes(p.category));
-    const general = all.filter(p => !categories.includes(p.category));
-    return of([...matched, ...general].slice(0, 10));
+    let params = new HttpParams().set('gender', gender);
+    for (const c of categories) params = params.append('categories[]', c);
+
+    return this.http.get<ShopProduct[]>(`${this.apiUrl}/shop/recommendations`, { params });
   }
-  
-  private placeholderProducts(): ShopProduct[] {
-    const mk = (
-      id: string, name: string, price: string, category: string,
-      gender: 'womens' | 'mens' | 'unisex'
-    ): ShopProduct => ({
-      id, name, price, category, gender,
-      imageUrl: `https://placehold.co/300x400?text=${encodeURIComponent(name)}`,
-      affiliateUrl: '#',
+
+  // Product images are fetched through the backend so third-party CORS rules
+  // don't block loading them into a try-on slot.
+  fetchProductImage(imageUrl: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/shop/image`, {
+      params: new HttpParams().set('url', imageUrl),
+      responseType: 'blob',
     });
-  
-    return [
-      mk('1', 'Classic White Shirt', '$39', 'top', 'unisex'),
-      mk('2', 'Linen Blazer', '$89', 'top', 'mens'),
-      mk('3', 'Silk Blouse', '$55', 'top', 'womens'),
-      mk('4', 'Slim Chinos', '$49', 'bottom', 'mens'),
-      mk('5', 'High-Waist Jeans', '$59', 'bottom', 'womens'),
-      mk('6', 'Leather Sneakers', '$79', 'shoes', 'unisex'),
-      mk('7', 'Suede Loafers', '$99', 'shoes', 'mens'),
-      mk('8', 'Ankle Boots', '$89', 'shoes', 'womens'),
-      mk('9', 'Minimalist Watch', '$120', 'watch', 'unisex'),
-      mk('10', 'Wool Scarf', '$35', 'scarf', 'unisex'),
-      mk('11', 'Canvas Tote', '$45', 'bag', 'womens'),
-      mk('12', 'Aviator Sunglasses', '$55', 'glasses', 'unisex'),
-    ];
   }
 }
