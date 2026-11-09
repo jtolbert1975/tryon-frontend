@@ -1,0 +1,24 @@
+<app-site-header />
+<main class="blog">
+  <h1>Fashion &amp; Shopping Guides</h1>
+  <p class="lead">Practical advice on fit, color, wardrobes and buying clothes online with confidence.</p>
+
+  <ul class="post-list">
+    @for (post of posts; track post.slug) {
+      <li>
+        <a [routerLink]="['/blog', post.slug]">
+          <h2>{{ post.title }}</h2>
+          <p>{{ post.description }}</p>
+          <span class="meta">{{ post.readMinutes }} min read</span>
+        </a>
+      </li>
+    }
+  </ul>
+
+  <section class="cta-box">
+    <h2>See it on you before you buy it</h2>
+    <p>Upload a photo and a piece of clothing. Your first try-on is free, with no sign-up.</p>
+    <a routerLink="/" class="btn">Try it free</a>
+  </section>
+</main>
+<app-site-footer />

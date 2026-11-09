@@ -1,19 +1,22 @@
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({ providedIn: 'root' })
 export class TokenService {
   private readonly KEY = 'tryon_token';
+  // localStorage only exists in the browser; prerendering runs in Node.
+  private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   getToken(): string | null {
-    return localStorage.getItem(this.KEY);
+    return this.isBrowser ? localStorage.getItem(this.KEY) : null;
   }
 
   setToken(token: string): void {
-    localStorage.setItem(this.KEY, token);
+    if (this.isBrowser) localStorage.setItem(this.KEY, token);
   }
 
   clearToken(): void {
-    localStorage.removeItem(this.KEY);
+    if (this.isBrowser) localStorage.removeItem(this.KEY);
   }
 
   hasToken(): boolean {

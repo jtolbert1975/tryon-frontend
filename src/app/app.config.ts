@@ -4,11 +4,12 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { routes } from './routes/app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
+import { provideClientHydration } from '@angular/platform-browser';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor])), provideClientHydration(),
   ],
 };

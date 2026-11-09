@@ -1,0 +1,36 @@
+<app-site-header />
+@if (post) {
+  <main class="blog">
+    <article>
+      <a routerLink="/blog" class="back">&larr; All guides</a>
+      <h1>{{ post.title }}</h1>
+      <p class="meta">By the Adattamento team &middot; {{ post.date }} &middot; {{ post.readMinutes }} min read</p>
+
+      @for (section of post.sections; track $index) {
+        @if (section.heading) { <h2>{{ section.heading }}</h2> }
+        @for (p of section.paragraphs ?? []; track $index) { <p>{{ p }}</p> }
+        @if (section.list) {
+          <ul>
+            @for (item of section.list; track $index) { <li>{{ item }}</li> }
+          </ul>
+        }
+      }
+    </article>
+
+    <section class="cta-box">
+      <h2>Not sure how it will look on you?</h2>
+      <p>Upload a photo of yourself and the item. Your first try-on is free, with no sign-up.</p>
+      <a routerLink="/" class="btn">Try it free</a>
+    </section>
+
+    <section class="related">
+      <h2>More guides</h2>
+      <ul class="post-list compact">
+        @for (r of related; track r.slug) {
+          <li><a [routerLink]="['/blog', r.slug]"><h3>{{ r.title }}</h3></a></li>
+        }
+      </ul>
+    </section>
+  </main>
+}
+<app-site-footer />
