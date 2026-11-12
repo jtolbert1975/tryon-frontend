@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Meta, Title } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription, interval, switchMap, takeWhile } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
@@ -24,6 +25,14 @@ export class LandingComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private pollSub?: Subscription;
   private token = '';
+
+  constructor() {
+    inject(Title).setTitle('Adattamento: Virtual Try-On for Any Outfit');
+    inject(Meta).updateTag({
+      name: 'description',
+      content: 'Upload a photo and a piece of clothing and see how it looks on you before you buy. Try one outfit free, no sign-up needed.',
+    });
+  }
 
   slot: GarmentSlot = 'top';
   personFile: File | null = null;
