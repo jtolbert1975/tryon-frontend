@@ -131,3 +131,17 @@
 }
 
 .switch { margin-top: 1rem; font-size: 0.9rem; a { color: var(--color-orange); font-weight: 600; } }
+
+.guides {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 1rem 2.5rem;
+
+  h2 { text-align: center; margin: 0 0 1rem; }
+  ul { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; gap: 0.75rem; }
+  li a { display: block; padding: 1rem 1.25rem; background: var(--color-offwhite); border-radius: 10px; text-decoration: none; color: inherit; box-shadow: 0 2px 8px rgba(28, 16, 24, 0.06); }
+  li a:hover { box-shadow: 0 4px 14px rgba(28, 16, 24, 0.12); }
+  h3 { margin: 0 0 0.25rem; font-size: 1.05rem; color: var(--color-dark); }
+  p { margin: 0; font-size: 0.9rem; color: #6b5f50; }
+  .all-guides { display: block; text-align: center; font-weight: 600; color: var(--color-green); text-decoration: none; }
+}

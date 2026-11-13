@@ -3,6 +3,7 @@
     <h1>See how it looks before you buy it.</h1>
     <p>Upload a photo of yourself and a piece of clothing. Adattamento shows you wearing it in seconds.</p>
     <nav class="hero-links">
+      <a routerLink="/blog">Blog</a>
       <a routerLink="/login">Log in</a>
       <a routerLink="/register" class="primary">Sign up</a>
     </nav>
@@ -85,3 +86,20 @@
     </section>
   }
 </main>
+
+<section class="guides">
+  <h2>Latest style guides</h2>
+  <ul>
+    @for (post of latestPosts; track post.slug) {
+      <li>
+        <a [routerLink]="['/blog', post.slug]">
+          <h3>{{ post.title }}</h3>
+          <p>{{ post.description }}</p>
+        </a>
+      </li>
+    }
+  </ul>
+  <a routerLink="/blog" class="all-guides">See all guides &rarr;</a>
+</section>
+
+<app-site-footer />

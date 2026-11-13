@@ -6,6 +6,8 @@ import { Router, RouterLink } from '@angular/router';
 import { Subscription, interval, switchMap, takeWhile } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { GuestJob, GuestService } from '../../services/guest.service';
+import { BLOG_POSTS } from '../../data/blog-posts';
+import { SiteFooterComponent } from '../../components/site-footer/site-footer.component';
 import { ImageProcessorService } from '../../services/image-processor.service';
 
 type GarmentSlot = 'outfit' | 'top' | 'bottom' | 'shoes';
@@ -13,7 +15,7 @@ type GarmentSlot = 'outfit' | 'top' | 'bottom' | 'shoes';
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, SiteFooterComponent],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
 })
@@ -25,6 +27,7 @@ export class LandingComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private pollSub?: Subscription;
   private token = '';
+  latestPosts = [...BLOG_POSTS].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
 
   constructor() {
     inject(Title).setTitle('Adattamento: Virtual Try-On for Any Outfit');
