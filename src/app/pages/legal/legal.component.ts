@@ -21,7 +21,7 @@ const PAGES: Record<string, LegalPage> = {
     sections: [
       {
         paragraphs: [
-          'Adattamento may earn a commission when you click certain links on this site and buy a product from a retailer. This costs you nothing extra, and the price you pay is the same.',
+          `Adattamento, operated by ${SITE.companyName}, may earn a commission when you click certain links on this site and buy a product from a retailer. This costs you nothing extra, and the price you pay is the same.`,
           'Commissions help us keep the free try-on and the guides on this site running. They do not change what we write, and we only recommend products and ideas we think are useful.',
           'Links of this kind are marked as sponsored links. Product details such as price and availability come from the retailer and can change, so always check the retailer\'s page before you buy.',
         ],
@@ -38,7 +38,7 @@ const PAGES: Record<string, LegalPage> = {
     sections: [
       {
         paragraphs: [
-          'This policy explains how Adattamento handles your information when you use our virtual try-on and read our guides.',
+          `Adattamento is operated by ${SITE.companyName} ("we", "us"). This policy explains how we handle your information when you use our virtual try-on and read our guides.`,
         ],
       },
       {
@@ -95,7 +95,7 @@ const PAGES: Record<string, LegalPage> = {
     description: 'The rules for using Adattamento.',
     sections: [
       {
-        paragraphs: ['By using Adattamento you agree to these terms.'],
+        paragraphs: [`Adattamento is operated by ${SITE.companyName} ("we", "us"). By using Adattamento you agree to these terms.`],
       },
       {
         heading: 'Using the service',

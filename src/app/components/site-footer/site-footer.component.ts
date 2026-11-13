@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SITE } from '../../data/site.config';
 
 @Component({
   selector: 'app-site-footer',
@@ -14,7 +15,7 @@ import { RouterLink } from '@angular/router';
         <a routerLink="/privacy">Privacy</a>
         <a routerLink="/terms">Terms</a>
       </nav>
-      <p>&copy; 2026 Adattamento. Some links on this site may be affiliate links; see our disclosure.</p>
+      <p>&copy; {{ year }} {{ company }}. Adattamento is operated by {{ company }}. Some links on this site may be affiliate links; see our disclosure.</p>
     </footer>
   `,
   styles: [`
@@ -25,4 +26,7 @@ import { RouterLink } from '@angular/router';
     p { margin: 0; }
   `],
 })
-export class SiteFooterComponent {}
+export class SiteFooterComponent {
+  company = SITE.companyName;
+  year = new Date().getFullYear();
+}

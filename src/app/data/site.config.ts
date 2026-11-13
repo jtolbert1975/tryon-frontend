@@ -1,7 +1,7 @@
 // Site-wide values used by the public pages. Update before launch.
 export const SITE = {
   name: 'Adattamento',
-  // TODO(launch): replace with the real support address and production domain.
+  companyName: 'Imanje Solutions LLC',
   contactEmail: 'info@imanjesolutions.com',
   baseUrl: 'https://adattamento.app',
 };
